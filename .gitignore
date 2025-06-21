@@ -1,11 +1,9 @@
 # Python
 __pycache__/
 *.py[cod]
-*.env
-*.venv/
 backend/venv/
-ENV/
 env/
+venv/
 *.sqlite3
 *.db
 
@@ -17,24 +15,32 @@ instance/
 node_modules/
 dist/
 build/
+.vite/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# OS files
+# Frontend Env
+frontend/.env
+frontend/.env.*
+
+# Alembic Migrations
+alembic/versions/
+
+# OS Files
 .DS_Store
 Thumbs.db
 
-# Editor files
+# Editor Files
 .vscode/
 .idea/
 *.swp
 
-# Environment variables
+# Environment Variables
 .env
 .env.*
 
-# Coverage reports
+# Coverage Reports
 htmlcov/
 .coverage
 coverage.xml

@@ -20,7 +20,7 @@ A full-stack event booking platform built with FastAPI (Python) for the backend 
 - **Version Control**: Git (separate branches for backend and frontend)
 
 ## Why this Tech Stack
-We chose React (with Vite and Tailwind CSS) and FastAPI with SQLAlchemy because they are modern, efficient, and widely used for building robust, scalable full-stack web applications. This stack enables rapid development, real-time interactivity, and clean API integration.
+I chose React (with Vite and Tailwind CSS) and FastAPI with SQLAlchemy because they are modern, efficient, and widely used for building robust, scalable full-stack web applications. This stack enables rapid development, real-time interactivity, and clean API integration.
 
 ## APIs Implemented:
 

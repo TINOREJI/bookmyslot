@@ -6,7 +6,7 @@ from app.models.event import Event, TimeSlot
 from app.models.booking import Booking
 from app.routes.events import router as events_router
 from app.routes.bookings import router as bookings_router
-
+import os
 # Create tables
 Base.metadata.create_all(bind=engine)
 

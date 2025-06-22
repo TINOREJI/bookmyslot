@@ -27,4 +27,4 @@ app.include_router(bookings_router)
 
 @app.get("/")
 async def root():
-    return {"message": "BookMySlot API"}
+    return {"message": "BookMySlot API by Tino Abraham Reji is running!"}

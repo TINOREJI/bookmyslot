@@ -4,6 +4,7 @@ from app.base import Base
 from app.models.event import Event, TimeSlot
 from app.models.booking import Booking
 from app.routes.events import router as events_router
+from app.routes.bookings import router as bookings_router
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -12,6 +13,7 @@ app = FastAPI(title="BookMySlot API")
 
 # Include routers
 app.include_router(events_router)
+app.include_router(bookings_router)
 
 @app.get("/")
 async def root():

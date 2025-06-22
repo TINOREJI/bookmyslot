@@ -62,4 +62,5 @@ class EventListResponse(BaseModel):
     created_at: datetime
     total_slots: int
     available_slots: int
+    slots: List[TimeSlotResponse]  # Added to include slot details
     model_config = ConfigDict(arbitrary_types_allowed=True)

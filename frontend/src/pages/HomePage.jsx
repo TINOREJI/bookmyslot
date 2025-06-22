@@ -7,14 +7,19 @@ import EmptyState from '../components/EmptyState';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState('earliest');
+  const [hideClosed, setHideClosed] = useState(false);
 
   useEffect(() => {
     const loadEvents = async () => {
       try {
         const data = await fetchEvents();
         setEvents(data);
+        applyFiltersAndSort(data, searchQuery, sortOption, hideClosed);
       } catch (err) {
         setError(err.message || 'Failed to load events');
       } finally {
@@ -25,11 +30,60 @@ const HomePage = () => {
     loadEvents();
   }, []);
 
+  useEffect(() => {
+    applyFiltersAndSort(events, searchQuery, sortOption, hideClosed);
+  }, [searchQuery, sortOption, hideClosed, events]);
+
+  const applyFiltersAndSort = (eventsData, query, sort, hide) => {
+    let filtered = [...eventsData];
+
+    // Filter by search query (title only, case-insensitive)
+    if (query) {
+      filtered = filtered.filter(event =>
+        event.title.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    // Filter out closed events if hideClosed is true
+    if (hide) {
+      const now = new Date();
+      filtered = filtered.filter(event =>
+        event.slots.length > 0 &&
+        event.slots.some(slot => {
+          const slotTime = new Date(slot.start_time + (slot.start_time.endsWith('Z') ? '' : 'Z'));
+          return slotTime.getTime() >= now.getTime();
+        })
+      );
+    }
+
+    // Sort by earliest or latest slot start_time
+    filtered.sort((a, b) => {
+      // Get earliest or latest slot time for each event
+      const getSlotTime = (event, useLatest) => {
+        if (event.slots.length === 0) return Infinity; // Push events with no slots to end
+        const slotTimes = event.slots.map(slot =>
+          new Date(slot.start_time + (slot.start_time.endsWith('Z') ? '' : 'Z')).getTime()
+        );
+        return useLatest ? Math.max(...slotTimes) : Math.min(...slotTimes);
+      };
+
+      const timeA = getSlotTime(a, sort === 'latest');
+      const timeB = getSlotTime(b, sort === 'latest');
+
+      return sort === 'earliest' ? timeA - timeB : timeB - timeA;
+    });
+
+    setFilteredEvents(filtered);
+  };
+
   const handleRetry = () => {
     setError(null);
     setLoading(true);
     fetchEvents()
-      .then(setEvents)
+      .then(data => {
+        setEvents(data);
+        applyFiltersAndSort(data, searchQuery, sortOption, hideClosed);
+      })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   };
@@ -45,6 +99,49 @@ const HomePage = () => {
         </p>
       </header>
 
+      {/* Search, Sort, and Filter Controls */}
+      <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="w-full sm:w-1/3">
+          <input
+            type="text"
+            placeholder="Search events by title..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            aria-label="Search events by title"
+          />
+        </div>
+        <div className="flex gap-4 items-center">
+          <div>
+            <label htmlFor="sort" className="text-sm font-medium text-gray-700 mr-2">
+              Sort by:
+            </label>
+            <select
+              id="sort"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              value={sortOption}
+              onChange={e => setSortOption(e.target.value)}
+              aria-label="Sort events by date"
+            >
+              <option value="earliest">Earliest First</option>
+              <option value="latest">Latest First</option>
+            </select>
+          </div>
+          <div className="flex items-center">
+            <input
+              id="hide-closed"
+              type="checkbox"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              checked={hideClosed}
+              onChange={e => setHideClosed(e.target.checked)}
+              aria-label="Hide closed events"
+            />
+            <label htmlFor="hide-closed" className="ml-2 text-sm font-medium text-gray-700">
+              Hide Closed Events
+            </label>
+          </div>
+        </div>
+      </div>
 
       {loading ? (
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -63,7 +160,7 @@ const HomePage = () => {
             Try Again
           </button>
         </div>
-      ) : events.length === 0 ? (
+      ) : filteredEvents.length === 0 ? (
         <EmptyState
           title="No events found"
           description="Be the first to create an exciting event!"
@@ -72,7 +169,7 @@ const HomePage = () => {
         />
       ) : (
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {events.map(event => (
+          {filteredEvents.map(event => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>

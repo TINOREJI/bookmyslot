@@ -6,7 +6,6 @@ const EventCard = ({ event }) => {
     (sum, slot) => sum + slot.max_bookings,
     0
   );
-
   const availableBookings = event.available_slots;
 
   // Calculate booking percentage
@@ -14,25 +13,64 @@ const EventCard = ({ event }) => {
     ? Math.round(((totalCapacity - availableBookings) / totalCapacity) * 100)
     : 0;
 
-  const isDisabled = availableBookings === 0;
+  // --- Date & Time Logic for Closing Event ---
+  const now = new Date();
+
+  // Check if all slots are in the past
+  const isPastEvent = event.slots.length > 0 && event.slots.every(slot => {
+    // Parse start_time as UTC to avoid timezone issues
+    const slotTime = new Date(slot.start_time + (slot.start_time.endsWith('Z') ? '' : 'Z'));
+    // Debug: Log slot time and current time
+    console.log(`Slot time: ${slotTime.toISOString()}, Now: ${now.toISOString()}`);
+    return slotTime.getTime() < now.getTime();
+  });
+
+  // Get earliest slot time for display
+  const earliestSlotTime = event.slots.length > 0
+    ? new Date(
+        Math.min(
+          ...event.slots.map(slot =>
+            new Date(slot.start_time + (slot.start_time.endsWith('Z') ? '' : 'Z')).getTime()
+          )
+        )
+      )
+    : null;
+
+  const isFullyBooked = availableBookings === 0;
+  const isDisabled = isFullyBooked || isPastEvent;
 
   return (
     <div
-      className="h-full flex flex-col bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden"
+      className="relative h-full flex flex-col bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden"
       aria-labelledby={`event-title-${event.id}`}
     >
+      {/* Overlay if event is closed */}
+      {isPastEvent && (
+        <div className="absolute inset-0 bg-gray-700 bg-opacity-60 flex items-center justify-center z-10">
+          <span className="text-xl text-white font-bold">Event Closed</span>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="p-6 flex-1">
+      <div className={`p-6 flex-1 ${isPastEvent ? 'opacity-60' : ''}`}>
         <div className="flex items-center justify-between mb-2">
-          <span className="inline-block bg-blue-100 text-blue-800 px-3 py-0.5 rounded-full text-xs font-semibold">
-            {availableBookings === 0 ? 'Full' : 'Open'}
+          <span
+            className={`inline-block px-3 py-0.5 rounded-full text-xs font-semibold
+            ${isFullyBooked ? 'bg-red-100 text-red-800' : isPastEvent ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'}`}
+          >
+            {isPastEvent ? 'Closed' : isFullyBooked ? 'Full' : 'Open'}
           </span>
           <span className="text-xs text-gray-400">
-            {new Date(event.created_at).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })}
+            {earliestSlotTime
+              ? earliestSlotTime.toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                })
+              : 'No slots available'}
           </span>
         </div>
         <h3
@@ -50,7 +88,7 @@ const EventCard = ({ event }) => {
           <div className="flex justify-between text-sm font-medium text-gray-700 mb-1">
             <span>Availability</span>
             <span>
-              <span className={availableBookings === 0 ? "text-red-600 font-bold" : "text-green-700 font-bold"}>
+              <span className={isFullyBooked ? 'text-red-600 font-bold' : 'text-green-700 font-bold'}>
                 {availableBookings}
               </span>
               <span> / {totalCapacity} bookings</span>
@@ -72,7 +110,7 @@ const EventCard = ({ event }) => {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer Part of Card */}
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
         <div className="text-sm text-gray-500">
           {event.slots.length} slot{event.slots.length !== 1 ? 's' : ''}
@@ -81,9 +119,9 @@ const EventCard = ({ event }) => {
           <button
             className="flex items-center justify-center px-4 py-2.5 border border-transparent text-base font-medium rounded-md text-gray-500 bg-gray-200 cursor-not-allowed"
             disabled
-            aria-label="No available bookings"
+            aria-label={isPastEvent ? 'Event Closed' : 'No available bookings'}
           >
-            Fully Booked
+            {isPastEvent ? 'Event Closed' : 'Fully Booked'}
           </button>
         ) : (
           <Link

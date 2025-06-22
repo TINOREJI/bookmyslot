@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+backend/venv/
+env/
+venv/
+*.sqlite3
+*.db
+
+# FastAPI
+instance/
+*.log
+
+# Node / React (Vite)
+node_modules/
+dist/
+build/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Frontend Env
+frontend/.env
+frontend/.env.*
+
+# Alembic Migrations
+alembic/versions/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Editor Files
+.vscode/
+.idea/
+*.swp
+
+# Environment Variables
+.env
+.env.*
+
+# Coverage Reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Misc
+*.bak
+*.tmp
+
+# SQLite DB
+*.sqlite

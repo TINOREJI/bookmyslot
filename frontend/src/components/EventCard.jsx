@@ -20,8 +20,6 @@ const EventCard = ({ event }) => {
   const isPastEvent = event.slots.length > 0 && event.slots.every(slot => {
     // Parse start_time as UTC to avoid timezone issues
     const slotTime = new Date(slot.start_time + (slot.start_time.endsWith('Z') ? '' : 'Z'));
-    // Debug: Log slot time and current time
-    console.log(`Slot time: ${slotTime.toISOString()}, Now: ${now.toISOString()}`);
     return slotTime.getTime() < now.getTime();
   });
 

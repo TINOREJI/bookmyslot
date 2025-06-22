@@ -1,6 +1,7 @@
 # BookMySlot
 
 A full-stack event booking platform built with FastAPI (Python) for the backend and React + Vite + Tailwind CSS for the frontend.
+![image](https://github.com/user-attachments/assets/03458b32-3a05-41c2-a4c7-0398b14f4de7)
 
 ## Features
 
@@ -97,6 +98,10 @@ npm run dev
 ```
 
 The frontend will be live at http://localhost:5173.
+![image](https://github.com/user-attachments/assets/8740cf45-34fd-4f6f-b493-11bd25737375)
+![image](https://github.com/user-attachments/assets/ded127ee-98c6-4a81-9f00-acce4e5248e0)
+![image](https://github.com/user-attachments/assets/f39f5c24-fe23-43fb-a418-4799117cd543)
+
 
 ## Usage
 

@@ -10,15 +10,15 @@ from app.routes.bookings import router as bookings_router
 # Create tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="BookMySlot API")
-
-# Add CORS middleware here (BEFORE including routers)
+app = FastAPI(title="BookMySlot API by Tino Abraham Reji")
+# Configure CORS
+allowed_origin = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").strip()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Your React frontend URL
+    allow_origins=[allowed_origin],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Include routers

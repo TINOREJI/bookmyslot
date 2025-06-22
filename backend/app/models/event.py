@@ -18,14 +18,13 @@ class Event(Base):
     slots = relationship("TimeSlot", back_populates="event", cascade="all, delete-orphan")
 
 class TimeSlot(Base):
-    """SQLAlchemy model for time slots."""
     __tablename__ = "time_slots"
     id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     event_id = Column(UUID(), ForeignKey("events.id"), nullable=False)
     start_time = Column(DateTime(timezone=True), nullable=False)
-    max_bookings = Column(Integer, nullable=False, default=1)
+    max_bookings = Column(Integer, nullable=False)
     event = relationship("Event", back_populates="slots")
-    bookings = relationship("Booking", back_populates="slot", cascade="all, delete-orphan")
+    bookings = relationship("Booking", back_populates="slot")
 
 class TimeSlotCreate(BaseModel):
     """Pydantic model for creating a time slot."""
@@ -43,6 +42,7 @@ class TimeSlotResponse(BaseModel):
     id: uuid.UUID
     start_time: datetime
     max_bookings: int
+    current_bookings: int  # Added current bookings count
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 class EventResponse(BaseModel):
@@ -62,5 +62,5 @@ class EventListResponse(BaseModel):
     created_at: datetime
     total_slots: int
     available_slots: int
-    slots: List[TimeSlotResponse]  # Added to include slot details
+    slots: List[TimeSlotResponse]
     model_config = ConfigDict(arbitrary_types_allowed=True)

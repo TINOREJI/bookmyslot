@@ -1,13 +1,14 @@
 import uuid
 from typing import List
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from app.database import SessionLocal
-from app.models.booking import Booking, BookingCreate, BookingResponse
-from app.models.event import TimeSlot
+from app.models.booking import Booking, BookingCreate, BookingResponse, BookingDetailResponse
+from app.models.event import TimeSlot, Event
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -20,7 +21,6 @@ def get_db():
 
 @router.post("/", response_model=BookingResponse)
 def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
-    """Create a booking for a time slot."""
     db_slot = db.query(TimeSlot).filter(TimeSlot.id == booking.slot_id).first()
     if not db_slot:
         raise HTTPException(status_code=404, detail="Time slot not found")
@@ -59,27 +59,36 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
         booked_at=db_booking.booked_at
     )
 
-@router.get("/users/{email}/bookings", response_model=List[BookingResponse])
+@router.get("/users/{email}/bookings", response_model=List[BookingDetailResponse])
 def get_user_bookings(email: str, db: Session = Depends(get_db)):
-    """Get all bookings for a user by email."""
-    bookings = db.query(Booking).filter(Booking.user_email == email).all()
+    bookings = (
+        db.query(Booking)
+        .options(
+            joinedload(Booking.slot).joinedload(TimeSlot.event)
+        )
+        .filter(Booking.user_email == email)
+        .all()
+    )
+    
     if not bookings:
         raise HTTPException(status_code=404, detail="No bookings found for this user")
     
     return [
-        BookingResponse(
+        BookingDetailResponse(
             id=booking.id,
             slot_id=booking.slot_id,
             user_name=booking.user_name,
             user_email=booking.user_email,
-            booked_at=booking.booked_at
+            booked_at=booking.booked_at,
+            event_title=booking.slot.event.title if booking.slot and booking.slot.event else "Event deleted",
+            event_description=booking.slot.event.description if booking.slot and booking.slot.event else "",
+            slot_start_time=booking.slot.start_time if booking.slot else None
         )
         for booking in bookings
     ]
 
 @router.get("/all", response_model=List[BookingResponse])
 def get_all_bookings(db: Session = Depends(get_db)):
-    """Get all bookings (for debugging)."""
     bookings = db.query(Booking).all()
     return [
         BookingResponse(

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # Add this import
 from app.database import engine
 from app.base import Base
 from app.models.event import Event, TimeSlot
@@ -10,6 +11,15 @@ from app.routes.bookings import router as bookings_router
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="BookMySlot API")
+
+# Add CORS middleware here (BEFORE including routers)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Your React frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 # Include routers
 app.include_router(events_router)

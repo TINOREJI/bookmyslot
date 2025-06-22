@@ -6,6 +6,7 @@ from app.models.uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 import uuid
+from typing import Optional
 
 class Booking(Base):
     """SQLAlchemy model for bookings."""
@@ -25,10 +26,14 @@ class BookingCreate(BaseModel):
     user_email: EmailStr = Field(..., example="john@example.com")
 
 class BookingResponse(BaseModel):
-    """Pydantic model for booking response."""
     id: uuid.UUID
     slot_id: uuid.UUID
     user_name: str
     user_email: str
     booked_at: datetime
     model_config = ConfigDict(arbitrary_types_allowed=True)
+class BookingDetailResponse(BookingResponse):
+    """Extended booking response with event/slot details"""
+    event_title: Optional[str] = None
+    event_description: Optional[str] = None
+    slot_start_time: Optional[datetime] = None
